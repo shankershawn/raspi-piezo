@@ -3,7 +3,9 @@ FROM shankershawn/python:3
 #WORKDIR gitrepos
 #RUN ["git", "clone", "https://github.com/shankershawn/raspi-piezo.git"]
 #RUN ["mkdir", "-p", "raspi-piezo-alarms"]
-WORKDIR alarms
-CMD ["alarmMain.py"]
-ENTRYPOINT ["python3"]
+#WORKDIR alarms
+
+CMD ["ls"]
+#CMD ["alarmMain.py"]
+#ENTRYPOINT ["python3"]
 
