@@ -17,11 +17,11 @@ def get_level(level_id, pass_code):
             return BatteryAlarm(data.get("status"), data.get("level"))
         else:
             raise http.HTTPException("Non 200 http response code received")
-    except http.HTTPException:
+    except (http.HTTPException, JSONDecodeError):
         print("There is a problem")
         traceback.print_exc()
-    except JSONDecodeError:
-        print("There is a problem")
+    except Exception:
+        print("There is an unexpected error")
         traceback.print_exc()
     finally:
         connection.close()
