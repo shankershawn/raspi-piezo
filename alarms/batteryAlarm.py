@@ -1,6 +1,5 @@
-import traceback
-
 import http.client as http
+import socket
 from json.decoder import JSONDecoder, JSONDecodeError
 from RPi import GPIO
 
@@ -17,22 +16,23 @@ def get_level(level_id, pass_code):
             return BatteryAlarm(data.get("status"), data.get("level"))
         else:
             raise http.HTTPException("Non 200 http response code received")
-    except (http.HTTPException, JSONDecodeError):
+    except (http.HTTPException, JSONDecodeError, socket.gaierror):
         print("There is a problem")
-        traceback.print_exc()
+        raise
     except Exception:
-        print("There is an unexpected error")
-        traceback.print_exc()
+        raise
     finally:
         connection.close()
 
 
 def get_pin_state(level_id, pass_code, threshold_level):
-    b = get_level(level_id, pass_code)
-    if b.status == 1 and b.level < threshold_level:
-        return GPIO.HIGH
-    return GPIO.LOW
-
+    try:
+        b = get_level(level_id, pass_code)
+        if b.status == 1 and b.level < threshold_level:
+            return GPIO.HIGH
+        return GPIO.LOW
+    except Exception:
+        raise
 
 class BatteryAlarm:
     def __init__(self, status, level):
