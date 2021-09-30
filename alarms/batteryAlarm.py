@@ -1,28 +1,36 @@
-import http.client as http
+# import http.client as http
+# import socket
 import socket
-from json.decoder import JSONDecoder, JSONDecodeError
+
 from RPi import GPIO
+import requests
 
 
 def get_level(level_id, pass_code):
     host = "battery-service-staging.herokuapp.com"
-    connection = http.HTTPSConnection(host)
+    # connection = http.HTTPSConnection(host)
+    response = None
     try:
-        connection.connect()
-        connection.request("GET", f"https://{host}/v1/batterylevel/{level_id}/{pass_code}")
-        response = connection.getresponse()
-        if response.status == 200:
-            data = JSONDecoder().decode(str(response.read().decode("UTF8")))
+        # connection.connect()
+        # connection.request("GET", f"https://{host}/v1/batterylevel/{level_id}/{pass_code}")
+        # response = connection.getresponse()
+        response = requests.get(f"https://{host}/v1/batterylevel/{level_id}/{pass_code}")
+        # response.raise_for_status()
+        if response.status_code == 200:
+            # data = JSONDecoder().decode(str(response.read().decode("UTF8")))
+            data = response.json()
             return BatteryAlarm(data.get("status"), data.get("level"))
         else:
-            raise http.HTTPException("Non 200 http response code received")
-    except (http.HTTPException, JSONDecodeError, socket.gaierror):
+            raise requests.exceptions.HTTPError('Non 200 response code received!')
+    except (requests.exceptions.HTTPError, socket.gaierror):
         print("There is a problem")
         raise
     except Exception:
         raise
     finally:
-        connection.close()
+        # connection.close()
+        if response is not None:
+            response.close()
 
 
 def get_pin_state(level_id, pass_code, threshold_level):
@@ -33,6 +41,7 @@ def get_pin_state(level_id, pass_code, threshold_level):
         return GPIO.LOW
     except Exception:
         raise
+
 
 class BatteryAlarm:
     def __init__(self, status, level):
